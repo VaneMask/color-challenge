@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="30 秒颜色挑战：看颜色，不看文字。免费网页小游戏，无需登录。"><title>别点文字，点颜色 · 好奇心实验室</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101421;color:#f3f6ff;font-family:'Microsoft YaHei',sans-serif;display:grid;place-items:center;min-height:100vh}main{width:min(94vw,480px);padding:28px 25px;background:#191f30;border:1px solid #343e54;border-radius:28px}small{color:#a8b7ce;letter-spacing:3px}h1{font-size:30px;margin:15px 0 8px}p{color:#b8c5da;line-height:1.8}.stats{display:flex;justify-content:space-between;padding:18px 0;font-size:18px}.word{text-align:center;font-size:84px;font-weight:900;height:152px;display:grid;place-items:center;background:#101421;border-radius:20px;margin:10px 0 22px}.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}button{font:700 20px 'Microsoft YaHei';color:white;background:#303b53;border:1px solid #52617f;border-radius:14px;padding:17px;cursor:pointer}button:hover{background:#425273}button:disabled{opacity:.45;cursor:default}#start{width:100%;background:#caf467;color:#14220a;margin-top:20px;border:0}#feedback{min-height:30px;text-align:center;margin:15px 0 0}footer{color:#97a5bb;font-size:12px;line-height:1.9;margin-top:20px}#progress{height:5px;background:#caf467;border-radius:10px;width:100%}
+button{touch-action:manipulation}#share{width:100%;margin-top:12px;font-size:16px}#shareStatus{font-size:13px;min-height:22px;margin:8px 0 0;text-align:center}@media(max-width:420px){body{padding:12px 0}main{padding:20px 18px}h1{font-size:26px}.word{height:125px;font-size:72px}p{margin:10px 0}.stats{padding:12px 0}}
+</style>
+<main><small>好奇心实验室 / 作品 001</small><h1>别点文字，点颜色。</h1><p>选择大字的<strong>显示颜色</strong>，不是它写的字。<br>30 秒，你能答对几题？</p><div class="stats"><span>剩余 <b id="time">30.0</b> 秒</span><span>得分 <b id="score">0</b></span></div><div id="progress"></div><div class="word" id="word">准备</div><div class="answers"><button data-i="0" disabled>红色</button><button data-i="1" disabled>蓝色</button><button data-i="2" disabled>绿色</button><button data-i="3" disabled>黄色</button></div><p id="feedback" role="status" aria-live="polite">答对 +1，答错不扣分</p><button id="start">开始挑战</button><button id="share">分享挑战</button><p id="shareStatus" role="status"></p><footer>原创网页互动 · 无需登录 · 不上传数据<br>娱乐挑战，不用于测量智商或诊断注意力。AI 辅助制作。</footer></main>
+<script>
+const colors=['#ff6578','#65a7ff','#7cdf94','#ffdc69'],names=['红','蓝','绿','黄'];
+let active=false,correct=-1,score=0,attempts=0,end=0,timer;
+const $=id=>document.getElementById(id),buttons=[...document.querySelectorAll('[data-i]')];
+function next(){const last=correct;do{correct=Math.floor(Math.random()*4)}while(correct===last);let text;do{text=Math.floor(Math.random()*4)}while(text===correct);$('word').textContent=names[text];$('word').style.color=colors[correct]}
+function finish(){active=false;clearInterval(timer);buttons.forEach(b=>b.disabled=true);$('time').textContent='0.0';$('progress').style.width='0%';$('word').textContent=score+' 分';$('word').style.color='#caf467';$('feedback').textContent=`答对 ${score} / ${attempts} 题。再来一次？`;$('start').textContent='再挑战一次';$('start').disabled=false}
+function tick(){let left=Math.max(0,end-performance.now());$('time').textContent=(left/1000).toFixed(1);$('progress').style.width=(left/300)+'%';if(!left)finish()}
+function start(){clearInterval(timer);score=attempts=0;active=true;end=performance.now()+30000;$('score').textContent=0;$('feedback').textContent='看颜色，不看字！';$('start').disabled=true;buttons.forEach(b=>b.disabled=false);next();tick();timer=setInterval(tick,40)}
+function answer(i){if(!active)return;if(performance.now()>=end){finish();return}attempts++;if(i===correct){score++;$('feedback').textContent='上一题答对了 +1'}else $('feedback').textContent='上一题应该选'+names[correct]+'色';$('score').textContent=score;next()}
+$('share').onclick=async()=>{
+const status=$('shareStatus');
+if(!/^https?:$/.test(location.protocol)||['localhost','127.0.0.1','::1','[::1]'].includes(location.hostname)){status.textContent='当前是本机预览，上线后才能分享给别人。';return}
+const url=location.origin+location.pathname;
+try{if(navigator.share){await navigator.share({title:'别点文字，点颜色',text:active?'来试试这个30秒颜色挑战！':`来试试30秒颜色挑战！${attempts?'我答对了'+score+'题。':''}`,url});status.textContent=''}else{await navigator.clipboard.writeText(url);status.textContent='游戏链接已复制，发给朋友就能玩。'}}catch(e){if(e.name!=='AbortError')status.textContent='可复制浏览器地址栏中的网址分享。'}
+};
+buttons.forEach(b=>b.onclick=()=>answer(Number(b.dataset.i)));$('start').onclick=start;
+document.addEventListener('keydown',e=>{if(!e.repeat&&/^[1-4]$/.test(e.key))answer(Number(e.key)-1)});
+</script></html>
